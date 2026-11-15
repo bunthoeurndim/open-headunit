@@ -61,12 +61,18 @@ jobs:
           echo "keystore bytes: $(wc -c < shared-signing.keystore)"
           keytool -list -keystore shared-signing.keystore -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS"
           APKSIGNER="$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -n 1)"
+          # The app renames its APK to <applicationId>_<versionName>_debug.apk
+          # (see app/build.gradle.kts), so find it with a glob instead of
+          # assuming the default app-lite-debug.apk name.
+          APK="$(ls app/build/outputs/apk/lite/debug/*.apk)"
+          SIGNED="${APK%.apk}-signed.apk"
+          echo "Lite APK: $APK"
           "$APKSIGNER" sign --ks shared-signing.keystore \
             --ks-pass "pass:$KEYSTORE_PASSWORD" --ks-key-alias "$KEY_ALIAS" \
             --key-pass "pass:$KEY_PASSWORD" \
-            --out app/build/outputs/apk/lite/debug/app-lite-debug-signed.apk \
-            app/build/outputs/apk/lite/debug/app-lite-debug.apk
-          rm app/build/outputs/apk/lite/debug/app-lite-debug.apk
+            --out "$SIGNED" \
+            "$APK"
+          rm "$APK"
 
       # Prints the signing certificate; with the shared key it must be
       # SHA-256 F9:B2:C3:D4:2E:70:E5:84:2E:3F:90:BD:20:EE:4F:54:AB:C4:BA:EE:93:2F:96:9A:82:10:EA:43:D1:96:38:72,
