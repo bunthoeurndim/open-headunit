@@ -55,6 +55,11 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           echo "$KEYSTORE_BASE64" | base64 -d > shared-signing.keystore
+          # Fail fast with a clear message if the secret did not survive
+          # entry intact (a truncated keystore fails signing opaquely).
+          # The keystore must be 2716 bytes, cert SHA-256 F9:B2:C3:D4:2E:70:...
+          echo "keystore bytes: $(wc -c < shared-signing.keystore)"
+          keytool -list -keystore shared-signing.keystore -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS"
           APKSIGNER="$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -n 1)"
           "$APKSIGNER" sign --ks shared-signing.keystore \
             --ks-pass "pass:$KEYSTORE_PASSWORD" --ks-key-alias "$KEY_ALIAS" \
