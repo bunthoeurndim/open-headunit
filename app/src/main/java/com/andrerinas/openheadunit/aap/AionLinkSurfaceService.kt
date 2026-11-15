@@ -105,7 +105,11 @@ class AionLinkSurfaceService : Service() {
                 true
             }
             DETACH -> { if (message.replyTo?.binder == owner) detach(); true }
-            TOUCH -> { if (active && message.replyTo?.binder == owner) handleTouch(message.data); true }
+            TOUCH -> {
+                if (active && message.replyTo?.binder == owner) handleTouch(message.data)
+                else AppLog.i("AionLinkSurfaceService: bridge touch dropped at gate: active=$active ownerMatch=${message.replyTo?.binder == owner}")
+                true
+            }
             else -> false
         }
     }
@@ -176,13 +180,24 @@ class AionLinkSurfaceService : Service() {
         }
     }
 
+    // Temporary trace for the AionLink car test: log every bridge touch (declared frame, negotiated
+    // size, mapper verdict, mapped pointers) so a tap can be followed from the car to Android Auto.
+    // Tap positions are screen coordinates only; nothing about the driver is logged.
     private fun handleTouch(data: Bundle) {
         val ids = data.getIntArray("ids") ?: return
         val xs = data.getIntArray("xs") ?: return
         val ys = data.getIntArray("ys") ?: return
-        val mapped = AionLinkTouchMapper.map(data.getInt("action"), ids, xs, ys,
-            data.getInt("width"), data.getInt("height"),
-            HeadUnitScreenConfig.getNegotiatedWidth(), HeadUnitScreenConfig.getNegotiatedHeight()) ?: return
+        val action = data.getInt("action")
+        val declaredW = data.getInt("width")
+        val declaredH = data.getInt("height")
+        val negotiatedW = HeadUnitScreenConfig.getNegotiatedWidth()
+        val negotiatedH = HeadUnitScreenConfig.getNegotiatedHeight()
+        val mapped = AionLinkTouchMapper.map(action, ids, xs, ys, declaredW, declaredH, negotiatedW, negotiatedH)
+        if (mapped == null) {
+            AppLog.i("AionLinkSurfaceService: bridge touch rejected by mapper: action=$action pointers=${ids.size} declared=${declaredW}x${declaredH} negotiated=${negotiatedW}x${negotiatedH}")
+            return
+        }
+        AppLog.i("AionLinkSurfaceService: bridge touch action=${mapped.action} index=${mapped.index} pointers=${mapped.pointers} negotiated=${negotiatedW}x${negotiatedH}")
         App.provide(this).commManager.send(TouchEvent(SystemClock.elapsedRealtime(), mapped.action, mapped.index, mapped.pointers))
     }
 
