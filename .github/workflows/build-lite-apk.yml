@@ -1,0 +1,81 @@
+name: Build OpenHeadunit Lite APK
+
+# Builds the Lite APK (org.aionlink.headunit.lite) from the `lite` flavor and
+# re-signs it with the shared AionLink signing key from repo secrets, so the
+# surface bridge to AionLink works (it needs both apps signed with the same
+# key). Without the secrets, the APK is left signed with the debug key: it
+# installs and runs, but it cannot bridge to a shared-key AionLink.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    name: Build Lite APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      # android-actions/setup-android@v3 fails: it tries to install the
+      # legacy "tools" package, which Google removed in favour of
+      # cmdline-tools. Install the exact components this build needs instead.
+      - name: Set up Android SDK
+        run: |
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -x "$SDKMANAGER" ]; then
+            SDKMANAGER="$(ls -d "$ANDROID_HOME"/cmdline-tools/*/bin/sdkmanager | sort -V | tail -n 1)"
+          fi
+          yes | "$SDKMANAGER" --licenses
+          "$SDKMANAGER" "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Build Lite (debug)
+        run: ./gradlew :app:assembleLiteDebug --no-daemon --console=plain
+
+      # Re-sign the debug-signed APK with the shared key. apksigner replaces
+      # the existing debug signature.
+      - name: Re-sign with shared key
+        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > shared-signing.keystore
+          APKSIGNER="$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -n 1)"
+          "$APKSIGNER" sign --ks shared-signing.keystore \
+            --ks-pass "pass:$KEYSTORE_PASSWORD" --ks-key-alias "$KEY_ALIAS" \
+            --key-pass "pass:$KEY_PASSWORD" \
+            --out app/build/outputs/apk/lite/debug/app-lite-debug-signed.apk \
+            app/build/outputs/apk/lite/debug/app-lite-debug.apk
+          rm app/build/outputs/apk/lite/debug/app-lite-debug.apk
+
+      # Prints the signing certificate; with the shared key it must be
+      # SHA-256 F9:B2:C3:D4:2E:70:E5:84:2E:3F:90:BD:20:EE:4F:54:AB:C4:BA:EE:93:2F:96:9A:82:10:EA:43:D1:96:38:72,
+      # the same as the AionLink APKs.
+      - name: Verify signature
+        run: |
+          APKSIGNER="$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -n 1)"
+          "$APKSIGNER" verify --print-certs app/build/outputs/apk/lite/debug/*.apk
+
+      - name: Upload Lite APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: openheadunit-lite-apk
+          path: app/build/outputs/apk/lite/debug/*.apk
+          if-no-files-found: error
+          retention-days: 30
