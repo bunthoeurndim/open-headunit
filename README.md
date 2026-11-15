@@ -1,9 +1,16 @@
 # Open Headunit
 
-> **AionLink experimental fork:** This fork adds a signature-protected video
-> surface bridge for [AionLink Open](https://github.com/codepdbh/aionlink-open).
-> Screen-off projection, audio, touch and vehicle compatibility are not yet
-> verified. See [bridge notes](docs/AIONLINK_SURFACE_BRIDGE.md).
+> **AionLink fork:** This fork adds a signature-protected video surface bridge
+> for [AionLink Open](https://github.com/bunthoeurndim/aionopen_link_mrB).
+> Verified with the GAC AION i60 on 2026-11-15: screen-off projection, audio
+> and reconnection work in the car. Touch delivery is still under diagnosis —
+> this fork logs every bridge touch (log tag `OPENHU`) so a tap test shows
+> where touches are dropped. See [bridge notes](docs/AIONLINK_SURFACE_BRIDGE.md).
+>
+> Lite changes in this fork: the surface bridge, touch tracing, and a CI
+> workflow (`.github/workflows/build-lite-apk.yml`) that builds and re-signs
+> the Lite APK with the shared AionLink key (artifact `openheadunit-lite-apk`).
+> Build the Lite variant locally with `./gradlew :app:assembleLiteDebug`.
 
 <a href='https://play.google.com/store/apps/details?id=com.andrerinas.headunitrevived'><img alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png' width="200"/></a>
 <a href='http://www.amazon.com/gp/mas/dl/android?p=com.andrerinas.headunitrevived'><img alt='Available at Amazon Appstore' src='https://images-na.ssl-images-amazon.com/images/G/01/mobile-apps/devportal2/res/images/amazon-appstore-badge-english-black.png' width="200"/></a>

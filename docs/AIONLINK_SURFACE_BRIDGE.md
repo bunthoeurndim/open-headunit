@@ -19,14 +19,16 @@ teardown and sleep paths remain in effect. Disconnecting the client detaches
 the target surface. After the transport starts, the bridge requests video
 focus and retries while no frame has been reported. It also accepts touch
 events from the attached client, validates them and scales frame coordinates
-to the negotiated video size. This assumes a direct scale; actual geometry,
-touch delivery and multitouch remain unverified.
+to the negotiated video size. This assumes a direct scale; the car declares a
+1920x972 touch frame, and touch delivery and multitouch remain under
+diagnosis. The fork logs every bridge touch (log tag `OPENHU`): gate drops,
+mapper rejections and accepted touches with their mapped coordinates.
 
-The experimental APK compiled and its manifest was inspected. **No end-to-end
-run has verified** decoder-to-encoder surface compatibility, Android Auto
-self mode, image, locked-screen operation, audio, latency, input or vehicle
-projection. A successful build or Binder attachment is not evidence that video
-is flowing. Do not rely on this prototype while driving.
+End-to-end runs have verified the bridge with the GAC AION i60
+(2026-11-15): decoder-to-encoder surface compatibility, Android Auto self
+mode, image, locked-screen operation, audio and reconnection all work in the
+car. Touch delivery is the remaining open item. Do not rely on this prototype
+while driving.
 
 Original project copyright and AGPL-3.0 license remain in effect; consult
 [LICENSE](../LICENSE) and the original notices before distributing builds.
