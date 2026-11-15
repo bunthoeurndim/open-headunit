@@ -3,8 +3,8 @@ name: Build OpenHeadunit Lite APK
 # Builds the Lite APK (org.aionlink.headunit.lite) from the `lite` flavor and
 # re-signs it with the shared AionLink signing key from repo secrets, so the
 # surface bridge to AionLink works (it needs both apps signed with the same
-# key). Without the secrets, the APK is left signed with the debug key: it
-# installs and runs, but it cannot bridge to a shared-key AionLink.
+# key). The secrets must be set: `secrets` cannot be used in an `if:`
+# condition, so the re-sign step runs unconditionally.
 on:
   push:
     branches: [main]
@@ -48,7 +48,6 @@ jobs:
       # Re-sign the debug-signed APK with the shared key. apksigner replaces
       # the existing debug signature.
       - name: Re-sign with shared key
-        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
