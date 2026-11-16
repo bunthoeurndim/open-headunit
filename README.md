@@ -710,6 +710,14 @@ export HEADUNIT_KEYSTORE_PASSWORD="YOUR_KEYSTORE_PASSWORD"
 export HEADUNIT_KEY_PASSWORD="YOUR_KEY_PASSWORD"
 ```
 
+## Credits
+
+OpenHeadunit Lite is based on [codepdbh/open-headunit](https://github.com/codepdbh/open-headunit),
+itself a variant of [Open Headunit](https://github.com/andreknieriem/open-headunit)
+by andreknieriem and mikereidis (AGPL-3.0). This fork adds the AionLink surface
+bridge (Android Auto from AionLink Probe), touch tracing, and bridge media keys
+for the steering wheel.
+
 ## Original Headunit
 Headunit for Android Auto (tm)
 
