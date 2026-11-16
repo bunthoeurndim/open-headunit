@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    OpenHeadunit Lite: only what AionLink Sonda uses (Self Mode, the AionLink surface bridge and the
+    OpenHeadunit Lite: only what AionLink Probe uses (Self Mode, the AionLink surface bridge and the
     automation broadcasts). The full app's entry points that would claim other system roles are
     removed here; their code stays so the shared sources build unchanged.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-    <!-- Status on the lite screen: is Android Auto / AionLink Sonda installed. -->
+    <!-- Status on the lite screen: is Android Auto / AionLink Probe installed. -->
     <queries>
         <package android:name="com.google.android.projection.gearhead" />
         <package android:name="org.aionlink.open.lab" />
@@ -31,7 +31,7 @@
         </activity>
         <activity-alias android:name=".CarLauncherAlias" tools:node="remove" />
 
-        <!-- No USB head unit connections: AionLink Sonda carries the picture to the car. -->
+        <!-- No USB head unit connections: AionLink Probe carries the picture to the car. -->
         <activity android:name=".app.UsbAttachedActivity" tools:node="merge" tools:ignore="IntentFilterExportedReceiver">
             <intent-filter tools:node="removeAll" />
             <meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" tools:node="remove" />

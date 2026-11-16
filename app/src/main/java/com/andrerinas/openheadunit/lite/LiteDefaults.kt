@@ -8,7 +8,7 @@ import com.andrerinas.openheadunit.utils.Settings
 
 /**
  * Fixed settings of the lite edition (flavor "lite"), written on every start so nothing needs configuring.
- * They are the values verified with AionLink Sonda on 2026-11-07/08: Self Mode only, 1080p, H.264, 30 FPS
+ * They are the values verified with AionLink Probe on 2026-11-07/08: Self Mode only, 1080p, H.264, 30 FPS
  * (AionLink's encoder rate), landscape, audio sink on and the AudioTrack backend. AionLink scales the picture
  * to the car's 1920x960. The safety notice is not accepted here: [LiteActivity] asks the user.
  */

@@ -30,9 +30,9 @@ import com.andrerinas.openheadunit.utils.Settings
 
 /**
  * The only screen of the lite edition. There is nothing to configure ([LiteDefaults] fixes the settings):
- * it shows whether the phone is ready for AionLink Sonda, offers only the steps still missing (safety notice,
- * permissions) and can stop a running session. Sessions are started by AionLink Sonda through the surface bridge.
- * Colours match AionLink Sonda's dark theme.
+ * it shows whether the phone is ready for AionLink Probe, offers only the steps still missing (safety notice,
+ * permissions) and can stop a running session. Sessions are started by AionLink Probe through the surface bridge.
+ * Colours match AionLink Probe's dark theme.
  */
 class LiteActivity : Activity() {
     private val dp get() = resources.displayMetrics.density
@@ -99,9 +99,9 @@ class LiteActivity : Activity() {
         val accepted = Settings(this).hasAcceptedDisclaimer
         val missing = AppPermissions.missingNormalPermissions(this)
         val androidAuto = installed(ANDROID_AUTO)
-        val sonda = installed(AIONLINK_SONDA)
+        val probe = installed(AIONLINK_PROBE)
         val live = App.provide(this).commManager.connectionState.value is CommManager.ConnectionState.TransportStarted
-        val ready = accepted && missing.isEmpty() && androidAuto && sonda
+        val ready = accepted && missing.isEmpty() && androidAuto && probe
         val (color, title, detail) = when {
             live && AionLinkAudioSink.attached -> Triple(LIVE, R.string.lite_state_live, R.string.lite_state_live_detail)
             live -> Triple(LIVE, R.string.lite_state_running, R.string.lite_state_running_detail)
@@ -120,7 +120,7 @@ class LiteActivity : Activity() {
             ActivityCompat.requestPermissions(this, missing.toTypedArray(), 1)
         }
         row(getString(R.string.lite_item_aa), androidAuto, null, null)
-        row(getString(R.string.lite_item_sonda), sonda, null, null)
+        row(getString(R.string.lite_item_probe), probe, null, null)
     }
 
     private fun row(label: String, done: Boolean, action: String?, onClick: (() -> Unit)?) {
@@ -176,8 +176,8 @@ class LiteActivity : Activity() {
 
     private companion object {
         const val ANDROID_AUTO = "com.google.android.projection.gearhead"
-        const val AIONLINK_SONDA = "org.aionlink.open.lab"
-        // Same palette as AionLink Sonda's dark theme (HomeUi.kt in AionLink Open).
+        const val AIONLINK_PROBE = "org.aionlink.open.lab"
+        // Same palette as AionLink Probe's dark theme (HomeUi.kt in AionLink Open).
         val BACKGROUND = 0xFF0B1220.toInt()
         val CARD = 0xFF1C2841.toInt()
         val CHECKLIST = 0xFF14315F.toInt()
