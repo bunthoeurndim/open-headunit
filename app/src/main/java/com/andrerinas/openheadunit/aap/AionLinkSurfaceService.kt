@@ -10,6 +10,7 @@ import android.os.Message
 import android.os.Messenger
 import android.os.ParcelFileDescriptor
 import android.os.SystemClock
+import android.view.KeyEvent
 import android.view.Surface
 import com.andrerinas.openheadunit.App
 import com.andrerinas.openheadunit.aap.protocol.messages.TouchEvent
@@ -33,6 +34,7 @@ class AionLinkSurfaceService : Service() {
         private const val ATTACH = 1
         private const val DETACH = 2
         private const val TOUCH = 3
+        private const val KEY = 4
         private const val STATUS = 10
         /**
          * A client that went away without coming back within this time ends the Android Auto session. Measured on
@@ -108,6 +110,11 @@ class AionLinkSurfaceService : Service() {
             TOUCH -> {
                 if (active && message.replyTo?.binder == owner) handleTouch(message.data)
                 else AppLog.i("AionLinkSurfaceService: bridge touch dropped at gate: active=$active ownerMatch=${message.replyTo?.binder == owner}")
+                true
+            }
+            KEY -> {
+                if (active && message.replyTo?.binder == owner) handleKey(message.data)
+                else AppLog.i("AionLinkSurfaceService: bridge key dropped at gate: active=$active ownerMatch=${message.replyTo?.binder == owner}")
                 true
             }
             else -> false
@@ -199,6 +206,17 @@ class AionLinkSurfaceService : Service() {
         }
         AppLog.i("AionLinkSurfaceService: bridge touch action=${mapped.action} index=${mapped.index} pointers=${mapped.pointers} negotiated=${negotiatedW}x${negotiatedH}")
         App.provide(this).commManager.send(TouchEvent(SystemClock.elapsedRealtime(), mapped.action, mapped.index, mapped.pointers))
+    }
+
+    // Car steering-wheel transport control (next/previous/play/pause) from the AionLink bridge.
+    // Forwarded to Android Auto the same way a head unit's own keys are: CommManager.sendKey
+    // applies the media-key routing setting, remapping and debounce. The AionLink side only
+    // sends media keys over the bridge, so nothing else arrives here.
+    private fun handleKey(data: Bundle) {
+        val action = data.getInt("action")
+        val keyCode = data.getInt("keyCode")
+        AppLog.i("AionLinkSurfaceService: bridge key action=$action keyCode=$keyCode")
+        App.provide(this).commManager.sendKey(keyCode, action == KeyEvent.ACTION_DOWN, null, "aionlink-bridge-key")
     }
 
     private fun reply(target: Messenger?, ok: Boolean, audio: Boolean = false) {

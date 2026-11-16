@@ -7,7 +7,8 @@
 > this fork logs every bridge touch (log tag `OPENHU`) so a tap test shows
 > where touches are dropped. See [bridge notes](docs/AIONLINK_SURFACE_BRIDGE.md).
 >
-> Lite changes in this fork: the surface bridge, touch tracing, and a CI
+> Lite changes in this fork: the surface bridge, touch tracing, bridge media
+> keys (the car's steering-wheel next/previous reach Android Auto), and a CI
 > workflow (`.github/workflows/build-lite-apk.yml`) that builds and re-signs
 > the Lite APK with the shared AionLink key (artifact `openheadunit-lite-apk`).
 > Build the Lite variant locally with `./gradlew :app:assembleLiteDebug`.
