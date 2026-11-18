@@ -1,0 +1,84 @@
+name: Release Lite APK
+
+# Publishes a GitHub Release with the Lite APK from a build run.
+# Run it manually from Actions -> Release Lite APK -> Run workflow.
+# It downloads the build artifact itself (inside GitHub) and attaches
+# the APK to the new release. Release notes come from CHANGELOG.md,
+# so the changelog is the single source of truth for release notes.
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'Build run ID to release (empty = latest successful build)'
+        required: false
+        type: string
+      tag:
+        description: 'Release tag (e.g. v4.0.0-beta2-lite)'
+        required: true
+        type: string
+      title:
+        description: 'Release title (e.g. OpenHeadunit Lite 4.0.0-beta2-lite)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Find the build run
+        id: find
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -n "${{ inputs.run_id }}" ]; then
+            RUN_ID="${{ inputs.run_id }}"
+          else
+            RUN_ID=$(gh run list --workflow build-lite-apk.yml --limit 10 --json databaseId,conclusion --jq '[.[] | select(.conclusion == "success")][0].databaseId')
+          fi
+          if [ -z "$RUN_ID" ] || [ "$RUN_ID" = "null" ]; then
+            echo "No successful build run found" >&2
+            exit 1
+          fi
+          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+          echo "Using build run $RUN_ID"
+
+      - name: Download the build artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download "${{ steps.find.outputs.run_id }}" --name openheadunit-lite-apk --dir apk
+          ls -l apk
+          sha256sum apk/*.apk
+
+      - name: Build the release notes from CHANGELOG.md
+        run: |
+          awk '
+            /^### AionLink fork/ { found = 1; next }
+            /^### / { if (found) exit }
+            found { print }
+          ' CHANGELOG.md > notes.md
+          if [ ! -s notes.md ]; then
+            echo "No AionLink fork section found in CHANGELOG.md" >&2
+            exit 1
+          fi
+          {
+            echo ""
+            echo "Install Lite first, then AionLink Open X — both must be signed with the same key for the bridge to work."
+            echo "Full changelog: CHANGELOG.md in this repo."
+          } >> notes.md
+          cat notes.md
+
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ inputs.tag }}" --target main --title "${{ inputs.title }}" --notes-file notes.md apk/*.apk
+          gh release view "${{ inputs.tag }}" --json tagName,name,assets --jq '{tag: .tagName, title: .name, assets: [.assets[] | {name: .name, size: .size}]}'
