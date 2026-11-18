@@ -1,4 +1,17 @@
 # Changelog
+
+### AionLink fork (OpenHeadunit Lite) — 2026-11-16
+
+Changes made in this fork for AionLink Open X (package `org.aionlink.headunit.lite`). Upstream Open Headunit history follows below.
+
+- Surface bridge: AionLink hands Lite its encoder surface and an audio pipe; Lite decodes Android Auto directly into it and returns 48 kHz PCM, with no virtual display or system privileges.
+- Touch tracing: every bridge touch is logged (log tag `OPENHU`), so a tap test shows whether a tap was dropped at the gate, rejected by the mapper, or delivered to Android Auto.
+- Bridge media keys: steering-wheel next/previous/pause forwarded from AionLink to Android Auto.
+- Fixed settings on every start: standalone mode only, 1080p, H.264, 30 fps, landscape, audio to AionLink.
+- A single screen: status, safety notice, permissions, and stop session.
+- Lighter: arm64-v8a only, no launcher, navigation, or USB features.
+- App label "Probe" (was "Sonda"); the package name is unchanged.
+
 ### 4.0.0-beta2
 - New Homescreen, favorites under the card on 16:9 units, and drawer tabs for shortcuts, thanks to @andrecuellar
 - Home: a separate switch for the widgets, and a panel opacity slider
